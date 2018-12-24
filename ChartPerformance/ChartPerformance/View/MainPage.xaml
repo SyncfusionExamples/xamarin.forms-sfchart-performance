@@ -26,7 +26,7 @@
             </chart:SfChart.PrimaryAxis>
             
             <chart:SfChart.SecondaryAxis>
-                <chart:NumericalAxis ActualRangeChanged="Handle_ActualRangeChanged"/>
+                <chart:NumericalAxis/>
             </chart:SfChart.SecondaryAxis>
             
             <chart:SfChart.ChartBehaviors>
