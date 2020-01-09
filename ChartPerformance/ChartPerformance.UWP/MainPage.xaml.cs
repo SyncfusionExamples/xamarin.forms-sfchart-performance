@@ -20,7 +20,7 @@ namespace ChartPerformance.UWP
         public MainPage()
         {
             this.InitializeComponent();
-
+        
             LoadApplication(new ChartPerformance.App());
         }
     }

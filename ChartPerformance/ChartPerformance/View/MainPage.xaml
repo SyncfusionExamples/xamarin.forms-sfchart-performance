@@ -1,48 +1,46 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:ChartPerformance"
              xmlns:chart="clr-namespace:Syncfusion.SfChart.XForms;assembly=Syncfusion.SfChart.XForms"
              x:Class="ChartPerformance.MainPage">
-    
+
     <ContentPage.BindingContext>
-        <local:MainPageViewModel/>
+        <local:MainPageViewModel x:Name="ViewModel"/>
     </ContentPage.BindingContext>
-    
+
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="10*" />
             <ColumnDefinition Width="3*" />
         </Grid.ColumnDefinitions>
 
-     <local:ChartExt x:Name="Chart" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+        <local:ChartExt SeriesRendered="Chart_SeriesRendered" x:Name="Chart" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
 
-            <chart:SfChart.Margin>
-                <OnPlatform x:TypeArguments="Thickness" Android="0,10,0,0" WinPhone="0,0,15,0" />
-            </chart:SfChart.Margin>
-            
             <chart:SfChart.PrimaryAxis>
-                <chart:NumericalAxis/>
+                <chart:NumericalAxis />
             </chart:SfChart.PrimaryAxis>
-            
+
             <chart:SfChart.SecondaryAxis>
                 <chart:NumericalAxis/>
             </chart:SfChart.SecondaryAxis>
-            
+
             <chart:SfChart.ChartBehaviors>
                 <chart:ChartZoomPanBehavior ZoomMode="X" />
                 <chart:ChartTrackballBehavior/>
             </chart:SfChart.ChartBehaviors>
             <chart:SfChart.Series>
-                <chart:FastLineSeries EnableTooltip="true" XBindingPath="XValue" YBindingPath="YValue" EnableAntiAliasing="false" ItemsSource="{Binding Data}" EnableAnimation="False" StrokeWidth="1"/>
+                <local:CustomFastLineSeries PixelCount="4" EnableTooltip="true"  EnableAnimation="False" StrokeWidth="1"  EnableAntiAliasing="False" ItemsSource="{Binding Data}" XBindingPath="XValue" YBindingPath="YValue"/>
             </chart:SfChart.Series>
         </local:ChartExt>
 
-        <ActivityIndicator Grid.ColumnSpan="2" x:Name="loadingIndicator" IsVisible="{Binding IsBusy}" IsRunning="{Binding IsBusy}" VerticalOptions="Center" HorizontalOptions="Center"/>
+        <ActivityIndicator Grid.ColumnSpan="2" x:Name="loadingIndicator" IsVisible="{Binding IsBusy}"  IsRunning="{Binding IsBusy}" BackgroundColor="Transparent" VerticalOptions="Center" HorizontalOptions="Center"/>
 
         <StackLayout VerticalOptions="FillAndExpand" Grid.Column="1">
             <Button VerticalOptions="Start" Command="{Binding UpdateDataCommand}" Text="Load 500K Points" />
             <Label FontSize="Small" VerticalOptions="End" x:Name="timeTaken" Margin="4" Text="{Binding RenderingTime}" HorizontalOptions="Start" />
+            <!--<Button VerticalOptions="Start" Command="{Binding UpdateDataCommand}" Text="Add 500K Points" />-->
+
         </StackLayout>
     </Grid>
 

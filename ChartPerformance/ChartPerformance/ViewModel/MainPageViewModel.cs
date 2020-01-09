@@ -12,15 +12,34 @@ namespace ChartPerformance
     class MainPageViewModel : INotifyPropertyChanged
     {
 
-        public ICommand UpdateDataCommand { get; set; }
+        #region private fields
 
-        private const int count = 5 * 100000; //500K data
+        private const int count = 1 * 500000; //500K data
 
         private const double startValue = 10;
 
-        private bool isBusy;
+        private bool isBusy = false;
 
-        private bool isDataGenerated = true;
+        private ObservableCollection<Data> data;
+
+        private DateTime start = DateTime.Now;
+
+        private string renderingTime;
+
+        //This is used to avoid the data points generation time.
+        private ObservableCollection<Data> tempData;
+
+        #endregion
+
+        #region public properties
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public Action BeginDataUpdate;
+        public Action EndDataUpdate;
+
+        public ICommand UpdateDataCommand { get; set; }
+        public ICommand AddDataCommand { get; set; }
 
         public bool IsBusy
         {
@@ -33,8 +52,6 @@ namespace ChartPerformance
             }
         }
 
-        private ObservableCollection<Data> data;
-
         public ObservableCollection<Data> Data
         {
             get { return data; }
@@ -43,11 +60,9 @@ namespace ChartPerformance
                 if (data == value) return;
                 data = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Data"));
-                MeasureRenderingTime();
+
             }
         }
-
-        private string renderingTime;
 
         public string RenderingTime
         {
@@ -59,9 +74,7 @@ namespace ChartPerformance
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("RenderingTime"));
             }
         }
-
-        //This is used to avoid the data points generation time.
-        private ObservableCollection<Data> tempData;
+        #endregion
 
         public MainPageViewModel()
         {
@@ -71,68 +84,83 @@ namespace ChartPerformance
 
             UpdateDataCommand = new Command(e =>
             {
-                if (isDataGenerated)
-                {
-                    Data = tempData;
-                    GenerateData();
-                }
-                else
-                {
-                    IsBusy = true;
-                }
+                GenerateData();
+
+            });
+
+            AddDataCommand = new Command(e =>
+            {
+                AddData(50);
+
             });
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
 
         private async void GenerateData()
         {
-            if (!isDataGenerated) return;
-
-            isDataGenerated = false;
-
-            await Task.Run(() =>
+            if (Device.RuntimePlatform != Device.UWP)
             {
-                tempData = new ObservableCollection<Data>();
-
-                Random rand = new Random();
-                double value = startValue;
-
-                for (int i = 0; i < count; i++)
+                await Task.Run(() =>
                 {
-
-                    if (rand.NextDouble() > 0.5)
-                        value += rand.NextDouble();
-                    else
-                        value -= rand.NextDouble();
-
-                    tempData.Add(new Data { YValue = value, XValue = i });
-                }
-                isDataGenerated = true;
-
-                if (IsBusy)
-                {
-                    Device.BeginInvokeOnMainThread(() =>
-                    {
-                        Data = tempData;
-
-                    });
-                }
-
-                IsBusy = false;
-            });
+                    LoadData();
+                });
+            }
+            else
+            {
+                LoadData();
+            }
         }
 
-        private void MeasureRenderingTime()
+        private void LoadData()
         {
-            var start = DateTime.Now;
+            IsBusy = true;
 
-            Device.BeginInvokeOnMainThread(() =>
+            tempData = new ObservableCollection<Data>();
+
+            Random rand = new Random();
+            double value = startValue;
+
+            for (int i = 0; i < count; i++)
             {
-                var end = DateTime.Now;
+                if (rand.NextDouble() > 0.5)
+                    value += rand.NextDouble();
+                else
+                    value -= rand.NextDouble();
 
-                RenderingTime = (end - start).TotalMilliseconds + "ms";
-            });
+                tempData.Add(new Data { YValue = value, XValue = i });
+            }
+
+            start = DateTime.Now;
+
+            Data = tempData;
+        }
+
+        void AddData(int dataCount)
+        {
+            BeginDataUpdate();
+            Random rand = new Random();
+            double value = startValue;
+
+            for (int i = 0; i < dataCount; i++)
+            {
+                if (rand.NextDouble() > 0.5)
+                    value += rand.NextDouble();
+                else
+                    value -= rand.NextDouble();
+
+                Data.Add(new Data { YValue = value, XValue = i });
+            }
+
+            EndDataUpdate();
+        }
+
+        public void MeasureRenderingTime()
+        {
+            var end = DateTime.Now;
+
+            RenderingTime = (end - start).TotalMilliseconds + "ms";
+
+            IsBusy = false;
         }
     }
 }

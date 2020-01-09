@@ -1,7 +1,6 @@
 ﻿using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
-[assembly: XamlCompilation(XamlCompilationOptions.Compile)]
 namespace ChartPerformance
 {
     public partial class MainPage : ContentPage
@@ -10,11 +9,13 @@ namespace ChartPerformance
         {
             InitializeComponent();
 
-            Chart.SuspendSeriesNotification();
+            ViewModel.BeginDataUpdate = () => Chart.SuspendSeriesNotification();
+            ViewModel.EndDataUpdate = () => Chart.ResumeSeriesNotification();
+        }
 
-            //Make the required changes in items source that is not necessary to be updated in UI immediately.
-
-            Chart.ResumeSeriesNotification();
+        private void Chart_SeriesRendered(object sender, System.EventArgs e)
+        {
+            ViewModel.MeasureRenderingTime();
         }
     }
 }
